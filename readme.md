@@ -39,7 +39,7 @@ request:
 }
 response:
 {
-    "success": true,
-    "status": "200",
-    "message": "Email successfully sent to hulkofsky@gmail.com"
+    "success": ...,
+    "status": ...,
+    "message": ...
 }
