@@ -98,7 +98,7 @@ router.post('/:userId/getweather', (req,res)=> {
                                             reject({success: false, status: '500', message: `error while parsing weather json ${err}`})
                                         }
                                         
-                                        if(weather.cod != 200){
+                                        if(weather.cod !== 200){
                                             reject({success: false, status: '500', message: `Location not found`})
                                         }
 
