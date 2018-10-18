@@ -30,7 +30,9 @@ router.post('/:userId/getweather', (req,res)=> {
                     headers: {'user-agent': 'node.js'}
                 }
                 
-                new Promise((resolve, reject)=>{
+
+
+                const promise = new Promise((resolve, reject)=>{
                     const gitApiReq = https.get(gitApiOptions, (gitRes) =>{
                         // Buffer the body entirely for processing as a whole.
                         const bodyChunks = []
@@ -97,37 +99,38 @@ router.post('/:userId/getweather', (req,res)=> {
                                             console.log(err, `error while parsing weather json ${err}`)
                                             reject({success: false, status: '500', message: `error while parsing weather json ${err}`})
                                         }
-                                        
-                                        if(weather.cod !== 200){
-                                            reject({success: false, status: '500', message: `Location not found`})
-                                        }
 
-                                        const mailOptions = {
-                                            from: keys.nodemailer.from,
-                                            to: email,//keys.nodemailer.to, //place EMAIL parameter here
-                                            subject: keys.nodemailer.subject,
-                                            html: `
-                                                ${message}. The weather in your region is ${weather.weather[0].main}. 
-                                                The tempreture is ${weather.main.temp}.
-                                                The pressure is ${weather.main.pressure}.
-                                                The humidity is ${weather.main.humidity}.
-                                                The wind speed is ${weather.wind.speed}.
-                                                Have a nice day! Jeesus loves You!
-                                            `
-                                        }
-                                
-                                        transporter.sendMail(mailOptions, (error, info) => {
-                                            if (error) {
-                                                reject({success: false, status: '500', message: `error while sending email - ${error}`})
-                                                console.log({success: false, message: `error while sending email - ${error}`})
-                                            }else{
-                                                resolve({success: true, status: '200', message: `Email successfully sent to ${email}`})
-                                                console.log({success: true, message: `Email sent to ${email}`})                                       
+                                        console.log(weather.cod, 'weather cod')
+                                        console.log(weather, 'weather object')
+
+                                        if(weather.cod && (Number(weather.cod) !== 200)){
+                                            console.log('Location not found')
+                                            reject({success: false, status: '500', message: `Location not found`})
+                                        }else{
+                                            const mailOptions = {
+                                                from: keys.nodemailer.from,
+                                                to: email,//keys.nodemailer.to, //place EMAIL parameter here
+                                                subject: keys.nodemailer.subject,
+                                                html: `
+                                                    ${message}. The weather in your region is ${weather.weather[0].main}. 
+                                                    The tempreture is ${weather.main.temp}.
+                                                    The pressure is ${weather.main.pressure}.
+                                                    The humidity is ${weather.main.humidity}.
+                                                    The wind speed is ${weather.wind.speed}.
+                                                    Have a nice day! Jeesus loves You!
+                                                `
                                             }
-                                        })          
-                                        
-                                        // setup email data with unicode symbols
-                                        
+                                    
+                                            transporter.sendMail(mailOptions, (error, info) => {
+                                                if (error) {
+                                                    reject({success: false, status: '500', message: `error while sending email - ${error}`})
+                                                    console.log({success: false, message: `error while sending email - ${error}`})
+                                                }else{
+                                                    resolve({success: true, status: '200', message: `Email successfully sent to ${email}`})
+                                                    console.log({success: true, message: `Email sent to ${email}`})                                       
+                                                }
+                                            })          
+                                        } 
                                     })     
                                 })
                             })
@@ -142,10 +145,15 @@ router.post('/:userId/getweather', (req,res)=> {
                             reject({success: false, status: '500', message: `GITHUB API error. ${error}`})
                         })
                     })
-                }).then((data)=>{
+                })
+
+                promise.then((data)=>{
                     console.log(data, ' ebanii status')
                     return res.status(Number(data.status)).json(data)
-                }) 
+                }).catch((error)=>{
+                    console.log(error, `error while parsing weather json ${error}`)
+                    return res.status(Number(error.status)).json(error)
+                })
             }else{
                 return res.status(403).json({success: false, data: {message: `Unauthorized`}}) 
             }
