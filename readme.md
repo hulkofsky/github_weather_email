@@ -1,18 +1,19 @@
 # Get weather for github user
 
-A simple api which takes github users email and location and sends him weather forecast from https://openweathermap.org/api via email.
+A simple api which takes github users email and location and sends him weather forecast from https://openweathermap.org/api via email. Technologies used: NodeJs/Express, Knex/Bookshelf, PostgreSQL, Nodemailer.
 
 ## Installation
-
-1) Install PostgreSQL
-2) Create database named "backend_test" with user - username: "cubex", password "cubex".
-3) Run following commands in console:
+1) Install [NodeJs](https://nodejs.org/en/download/) 
+2) Install [PostgreSQL](https://www.postgresql.org/download/)
+3) Create database named "backend_test" with user - username: "cubex", password "cubex".
+4) Run following commands in console:
 ```bash
 git clone https://github.com/hulkofsky/github_weather_email
 ```
 ```bash
 cd github_weather_email
 ```
+Rename "example.env" to ".env"
 ```bash
 node_modules/.bin/knex migrate:latest
 ```
