@@ -14,10 +14,10 @@ git clone https://github.com/hulkofsky/github_weather_email
 cd github_weather_email
 ```
 ```bash
-cd node_modules/.bin/knex migrate:latest
+node_modules/.bin/knex migrate:latest
 ```
 ```bash
-cd node_modules/.bin/knex seed:run
+node_modules/.bin/knex seed:run
 ```
 ```bash
 npm i
