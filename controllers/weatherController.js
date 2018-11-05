@@ -7,68 +7,60 @@ const UserService = require('../services/userService')
 const userService = new UserService
 
 module.exports = class weatherController {
-    getWeather(req,res){    
+    async getWeather(req,res){    
         const token = req.headers.token
         const username = req.body.username
         const message = req.body.message
-        const userId = req.params.userId
-        
-        let location
-        let email
-        helper
-        .validateParams({username: username, token: token, userId: userId})
-        .then(()=>{
-            return userService.checkAuthorization(userId, token)
-        })
-        .then(user=>{
-            const options = {
+        const userId = req.params.userId        
+
+        try {   
+            const gitApiOptions = {
                 host: process.env.GIT_API_HOST,
                 path: `/users/${username}?client_id=${process.env.GIT_API_CLIENT_ID}&client_secret=${process.env.GIT_API_CLIENT_SECRET}`,
                 headers: {"user-agent":process.env.API_HEADER}
             }
-            return weatherService.httpGetPromisified(options)
-        })
-        .then(data=>{
-            location = JSON.parse(data).location
-            email = JSON.parse(data).email
-            return helper.validateParams({location, email})
-        })
-        .then(()=>{
-            const options = {
+            
+            await helper.validateParams({username: username, token: token, userId: userId})
+            await userService.checkAuthorization(userId, token)
+            
+            const githubData = await weatherService.httpGetPromisified(gitApiOptions)
+            
+            const location = JSON.parse(githubData).location
+            const email = JSON.parse(githubData).email
+
+            const weatherApiOptions = {
                 host: process.env.WEATHER_API_HOST,
                 path: `/data/2.5/weather?q=${location}&APPID=${process.env.WEATHER_API_APPID}`,
                 headers: process.env.API_HEADERS
             }
-            return weatherService.httpGetPromisified(options)
-        })
-        .then(data=>{
-            return weatherService.checkWeather(data)
-        })
-        .then(weather=>{
+
+            await helper.validateParams({location, email})
+
+            const weatherData = await weatherService.httpGetPromisified(weatherApiOptions)
+            const checkedWeather = await weatherService.checkWeather(weatherData)
+
             const mailOptions = {
                 from: process.env.NODEMAILER_FROM,
                 to: email,
                 subject: process.env.NODEMAILER_SUBJECT,
                 html: `
-                    ${message}. The weather in your region is ${weather.weather[0].main}. 
-                    The tempreture is ${weather.main.temp}.
-                    The pressure is ${weather.main.pressure}.
-                    The humidity is ${weather.main.humidity}.
-                    The wind speed is ${weather.wind.speed}.
+                    ${message}. The weather in your region is ${checkedWeather.weather[0].main}. 
+                    The tempreture is ${checkedWeather.main.temp}.
+                    The pressure is ${checkedWeather.main.pressure}.
+                    The humidity is ${checkedWeather.main.humidity}.
+                    The wind speed is ${checkedWeather.wind.speed}.
                     Have a nice day! Jeesus loves You!
                 `
             }
-            return weatherService.sendEmail(mailOptions)
-        })
-        .then(message=>{
+            const successMessage = await weatherService.sendEmail(mailOptions)
+
             res.status(200).json({
-                message
+                successMessage
             })
-        })
-        .catch(error=>{
+        } catch (error) {
             if (!_.isEmpty(error)) {
                 res.status(error.status).json(error)
             }
-        })   
+        }
     }
 }

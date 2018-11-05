@@ -24,7 +24,6 @@ module.exports = class userService{
             .where({email: email})
             .fetch()
             .then(user=>{
-                console.log('user blyuat')
                 if(user){
                     reject({success: false, status: 500, errors: [`User with this email already exists`]})       
                 }else{
@@ -40,7 +39,6 @@ module.exports = class userService{
             .forge(data)
             .save()
             .then(result => {
-                console.log(result)
                 if(result){
                     resolve({success: true, id: result.get('id'), token: result.get('token'), avatar: result.get('avatar')})
                 }else{
